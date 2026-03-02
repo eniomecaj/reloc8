@@ -1,0 +1,1319 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RELOC8 - AI-Powered Relocation Intelligence</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'display': ['Space Grotesk', 'system-ui', 'sans-serif'],
+            'body': ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            'brand': {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            },
+            'slate': {
+              850: '#1a2332',
+              950: '#0a0f1a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #0a0f1a 0%, #1a2332 50%, #0f172a 100%);
+    }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .score-ring {
+      background: conic-gradient(
+        var(--score-color) calc(var(--score) * 3.6deg),
+        rgba(255, 255, 255, 0.1) 0deg
+      );
+    }
+    
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    .slider-track {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .slider-track::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #22c55e;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    }
+    
+    .slider-track::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #22c55e;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    }
+    
+    .leaflet-container {
+      background: #1a2332;
+      border-radius: 12px;
+    }
+    
+    .custom-marker {
+      background: #22c55e;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    
+    .expand-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    
+    .expand-content.expanded {
+      max-height: 500px;
+    }
+    
+    .tab-active {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: #22c55e;
+    }
+    
+    @media print {
+      .no-print { display: none !important; }
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full gradient-bg text-white font-body overflow-auto"><!-- Landing Page -->
+  <div id="landing-page" class="min-h-full"><!-- Navigation -->
+   <nav class="fixed top-0 left-0 right-0 z-50 glass-card">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-2">
+       <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+       </div><span class="font-display font-bold text-xl tracking-tight">RELOC8</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8"><a href="#features" class="text-gray-300 hover:text-white transition-colors text-sm">Features</a> <a href="#how-it-works" class="text-gray-300 hover:text-white transition-colors text-sm">How It Works</a> <button onclick="showApp()" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 rounded-lg text-sm font-medium transition-all"> Get Started </button>
+      </div>
+     </div>
+    </div>
+   </nav><!-- Hero Section -->
+   <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+     <div class="grid lg:grid-cols-2 gap-12 items-center">
+      <div>
+       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/20 border border-brand-500/30 text-brand-400 text-sm mb-6"><span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span> AI-Powered Intelligence
+       </div>
+       <h1 id="hero-title" class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">Find Your Perfect<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-emerald-300">Neighbourhood</span></h1>
+       <p id="hero-subtitle" class="text-gray-400 text-lg mb-8 max-w-lg">Make data-driven relocation decisions with transparent scoring, financial projections, and neighbourhood insights tailored to your priorities.</p>
+       <div class="flex flex-col sm:flex-row gap-4"><button id="cta-button" onclick="showApp()" class="px-8 py-4 bg-brand-500 hover:bg-brand-600 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 shadow-lg shadow-brand-500/30"> Get Recommendations → </button> <button onclick="document.getElementById('how-it-works').scrollIntoView({behavior: 'smooth'})" class="px-8 py-4 glass-card rounded-xl font-medium hover:bg-white/10 transition-all"> See How It Works </button>
+       </div>
+       <div class="mt-12 flex items-center gap-8">
+        <div>
+         <div class="text-3xl font-display font-bold text-brand-400">
+          90+
+         </div>
+         <div class="text-gray-500 text-sm">
+          Neighbourhoods
+         </div>
+        </div>
+        <div class="w-px h-12 bg-gray-700"></div>
+        <div>
+         <div class="text-3xl font-display font-bold text-brand-400">
+          3
+         </div>
+         <div class="text-gray-500 text-sm">
+          Major UK Cities
+         </div>
+        </div>
+        <div class="w-px h-12 bg-gray-700"></div>
+        <div>
+         <div class="text-3xl font-display font-bold text-brand-400">
+          100%
+         </div>
+         <div class="text-gray-500 text-sm">
+          Transparent
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="relative hidden lg:block">
+       <div class="animate-float">
+        <div class="glass-card rounded-2xl p-6 max-w-sm ml-auto">
+         <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center">
+           <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+           </svg>
+          </div>
+          <div>
+           <div class="text-sm text-gray-400">
+            Match Score
+           </div>
+           <div class="text-2xl font-display font-bold text-brand-400">
+            94%
+           </div>
+          </div>
+         </div>
+         <div class="space-y-3">
+          <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Affordability</span>
+           <div class="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div class="h-full bg-brand-500 rounded-full" style="width: 88%"></div>
+           </div>
+          </div>
+          <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Safety</span>
+           <div class="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div class="h-full bg-brand-500 rounded-full" style="width: 92%"></div>
+           </div>
+          </div>
+          <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Transport</span>
+           <div class="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div class="h-full bg-brand-500 rounded-full" style="width: 96%"></div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="absolute -bottom-10 -left-10 glass-card rounded-xl p-4 animate-float" style="animation-delay: -2s">
+        <div class="flex items-center gap-3">
+         <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+         </div>
+         <div>
+          <div class="text-sm font-medium">
+           Rent-to-Income
+          </div>
+          <div class="text-xs text-emerald-400">
+           28% - Healthy
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Features Section -->
+   <section id="features" class="py-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+     <div class="text-center mb-16">
+      <h2 class="font-display text-3xl sm:text-4xl font-bold mb-4">Intelligent Features</h2>
+      <p class="text-gray-400 max-w-2xl mx-auto">Everything you need to make confident relocation decisions</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-6">
+      <div class="glass-card rounded-2xl p-6 hover:bg-white/5 transition-all">
+       <div class="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center mb-4">
+        <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-2">Transparent Scoring</h3>
+       <p class="text-gray-400 text-sm">Every score is explainable. See exactly how we calculate affordability, safety, transport, and more.</p>
+      </div>
+      <div class="glass-card rounded-2xl p-6 hover:bg-white/5 transition-all">
+       <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-4">
+        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-2">Financial Projections</h3>
+       <p class="text-gray-400 text-sm">Get rent-to-income ratios, monthly leftover estimates, and warning flags for financial sustainability.</p>
+      </div>
+      <div class="glass-card rounded-2xl p-6 hover:bg-white/5 transition-all">
+       <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mb-4">
+        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+        </svg>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-2">Interactive Maps</h3>
+       <p class="text-gray-400 text-sm">Visualize recommended neighbourhoods on an interactive map with key data points.</p>
+      </div>
+      <div class="glass-card rounded-2xl p-6 hover:bg-white/5 transition-all">
+       <div class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-4">
+        <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-2">Household-Aware</h3>
+       <p class="text-gray-400 text-sm">Tailored recommendations for singles, couples, and families with school ratings when needed.</p>
+      </div>
+      <div class="glass-card rounded-2xl p-6 hover:bg-white/5 transition-all">
+       <div class="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center mb-4">
+        <svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-2">Community Filters</h3>
+       <p class="text-gray-400 text-sm">Find areas with mosques, churches, temples, or other community facilities that matter to you.</p>
+      </div>
+      <div class="glass-card rounded-2xl p-6 hover:bg-white/5 transition-all">
+       <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-4">
+        <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+        </svg>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-2">PDF Reports</h3>
+       <p class="text-gray-400 text-sm">Download comprehensive reports to share with partners, family, or for your records.</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- How It Works Section -->
+   <section id="how-it-works" class="py-20 px-4 sm:px-6 lg:px-8 bg-black/20">
+    <div class="max-w-7xl mx-auto">
+     <div class="text-center mb-16">
+      <h2 class="font-display text-3xl sm:text-4xl font-bold mb-4">How It Works</h2>
+      <p class="text-gray-400 max-w-2xl mx-auto">Three simple steps to find your perfect neighbourhood</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-8">
+      <div class="text-center">
+       <div class="w-16 h-16 rounded-2xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center mx-auto mb-6"><span class="font-display text-2xl font-bold text-brand-400">1</span>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-3">Tell Us About You</h3>
+       <p class="text-gray-400 text-sm">Select your destination city, enter your salary and budget, and set your priorities using our intuitive sliders.</p>
+      </div>
+      <div class="text-center">
+       <div class="w-16 h-16 rounded-2xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center mx-auto mb-6"><span class="font-display text-2xl font-bold text-brand-400">2</span>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-3">AI Analysis</h3>
+       <p class="text-gray-400 text-sm">Our scoring engine analyzes 90+ neighbourhoods against your criteria with weighted algorithms.</p>
+      </div>
+      <div class="text-center">
+       <div class="w-16 h-16 rounded-2xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center mx-auto mb-6"><span class="font-display text-2xl font-bold text-brand-400">3</span>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-3">Get Recommendations</h3>
+       <p class="text-gray-400 text-sm">Receive your top 5 matches with detailed scorecards, financial projections, and comparison tools.</p>
+      </div>
+     </div>
+     <div class="text-center mt-12"><button onclick="showApp()" class="px-8 py-4 bg-brand-500 hover:bg-brand-600 rounded-xl font-semibold text-lg transition-all transform hover:scale-105"> Start Your Search → </button>
+     </div>
+    </div>
+   </section><!-- Footer -->
+   <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-gray-800">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+     <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+       <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+       </svg>
+      </div><span class="font-display font-bold">RELOC8</span>
+     </div>
+     <p class="text-gray-500 text-sm">© 2024 RELOC8. AI-Powered Relocation Intelligence.</p>
+    </div>
+   </footer>
+  </div><!-- App Page -->
+  <div id="app-page" class="min-h-full hidden"><!-- App Navigation -->
+   <nav class="fixed top-0 left-0 right-0 z-50 glass-card no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="flex items-center justify-between h-16"><button onclick="showLanding()" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+       <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        </svg>
+       </div><span class="font-display font-bold text-xl tracking-tight">RELOC8</span> </button>
+      <div class="flex items-center gap-4"><button onclick="saveResults()" class="px-4 py-2 glass-card rounded-lg text-sm font-medium hover:bg-white/10 transition-all flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg> Save </button> <button onclick="loadSavedResults()" class="px-4 py-2 glass-card rounded-lg text-sm font-medium hover:bg-white/10 transition-all"> Load Saved </button>
+      </div>
+     </div>
+    </div>
+   </nav>
+   <div class="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto"><!-- Form Section -->
+     <div id="form-section" class="mb-12">
+      <div class="text-center mb-8">
+       <h1 class="font-display text-3xl font-bold mb-2">Find Your Perfect Neighbourhood</h1>
+       <p class="text-gray-400">Tell us about your preferences and we'll find the best matches</p>
+      </div>
+      <form id="relocation-form" class="glass-card rounded-2xl p-6 md:p-8">
+       <div class="grid md:grid-cols-2 gap-8"><!-- Left Column -->
+        <div class="space-y-6">
+         <h3 class="font-display text-lg font-semibold flex items-center gap-2">
+          <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg> Basic Information</h3><!-- City Selection -->
+         <div><label class="block text-sm font-medium text-gray-300 mb-2">Destination City</label> <select id="city" required class="w-full px-4 py-3 rounded-xl bg-white/5 border border-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"> <option value="">Select a city...</option> <option value="london">London</option> <option value="manchester">Manchester</option> <option value="birmingham">Birmingham</option> </select>
+         </div><!-- Salary -->
+         <div><label class="block text-sm font-medium text-gray-300 mb-2">Annual Salary (£)</label> <input type="number" id="salary" required min="10000" max="500000" placeholder="e.g., 45000" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all">
+          <p class="text-xs text-gray-500 mt-1">Before tax</p>
+         </div><!-- Rent Budget -->
+         <div><label class="block text-sm font-medium text-gray-300 mb-2">Monthly Rent Budget (£)</label> <input type="number" id="rent-budget" required min="200" max="10000" placeholder="e.g., 1500" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all">
+         </div><!-- Household Type -->
+         <div><label class="block text-sm font-medium text-gray-300 mb-2">Household Type</label>
+          <div class="grid grid-cols-3 gap-3"><label class="cursor-pointer"> <input type="radio" name="household" value="single" class="hidden peer" checked>
+            <div class="px-4 py-3 rounded-xl border border-gray-700 text-center peer-checked:border-brand-500 peer-checked:bg-brand-500/20 transition-all">
+             <div class="text-lg mb-1">
+              👤
+             </div>
+             <div class="text-sm">
+              Single
+             </div>
+            </div></label> <label class="cursor-pointer"> <input type="radio" name="household" value="couple" class="hidden peer">
+            <div class="px-4 py-3 rounded-xl border border-gray-700 text-center peer-checked:border-brand-500 peer-checked:bg-brand-500/20 transition-all">
+             <div class="text-lg mb-1">
+              👫
+             </div>
+             <div class="text-sm">
+              Couple
+             </div>
+            </div></label> <label class="cursor-pointer"> <input type="radio" name="household" value="family" class="hidden peer">
+            <div class="px-4 py-3 rounded-xl border border-gray-700 text-center peer-checked:border-brand-500 peer-checked:bg-brand-500/20 transition-all">
+             <div class="text-lg mb-1">
+              👨‍👩‍👧
+             </div>
+             <div class="text-sm">
+              Family
+             </div>
+            </div></label>
+          </div>
+         </div><!-- Children -->
+         <div><label class="flex items-center gap-3 cursor-pointer"> <input type="checkbox" id="has-children" class="w-5 h-5 rounded bg-white/5 border-gray-700 text-brand-500 focus:ring-brand-500"> <span class="text-sm">I have or plan to have children (include school ratings)</span> </label>
+         </div>
+        </div><!-- Right Column -->
+        <div class="space-y-6">
+         <h3 class="font-display text-lg font-semibold flex items-center gap-2">
+          <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </svg> Priorities (0-10)</h3><!-- Priority Sliders -->
+         <div class="space-y-5">
+          <div>
+           <div class="flex justify-between items-center mb-2"><label class="text-sm font-medium text-gray-300">Affordability</label> <span id="affordability-value" class="text-sm text-brand-400 font-medium">5</span>
+           </div><input type="range" id="priority-affordability" min="0" max="10" value="5" class="w-full slider-track" oninput="updateSliderValue('affordability', this.value)">
+          </div>
+          <div>
+           <div class="flex justify-between items-center mb-2"><label class="text-sm font-medium text-gray-300">Safety</label> <span id="safety-value" class="text-sm text-brand-400 font-medium">5</span>
+           </div><input type="range" id="priority-safety" min="0" max="10" value="5" class="w-full slider-track" oninput="updateSliderValue('safety', this.value)">
+          </div>
+          <div>
+           <div class="flex justify-between items-center mb-2"><label class="text-sm font-medium text-gray-300">Transport Links</label> <span id="transport-value" class="text-sm text-brand-400 font-medium">5</span>
+           </div><input type="range" id="priority-transport" min="0" max="10" value="5" class="w-full slider-track" oninput="updateSliderValue('transport', this.value)">
+          </div>
+          <div>
+           <div class="flex justify-between items-center mb-2"><label class="text-sm font-medium text-gray-300">Lifestyle &amp; Amenities</label> <span id="lifestyle-value" class="text-sm text-brand-400 font-medium">5</span>
+           </div><input type="range" id="priority-lifestyle" min="0" max="10" value="5" class="w-full slider-track" oninput="updateSliderValue('lifestyle', this.value)">
+          </div>
+          <div>
+           <div class="flex justify-between items-center mb-2"><label class="text-sm font-medium text-gray-300">Schools Quality</label> <span id="schools-value" class="text-sm text-brand-400 font-medium">5</span>
+           </div><input type="range" id="priority-schools" min="0" max="10" value="5" class="w-full slider-track" oninput="updateSliderValue('schools', this.value)">
+          </div>
+         </div><!-- Optional Filters -->
+         <div class="pt-4 border-t border-gray-700">
+          <h4 class="text-sm font-medium text-gray-300 mb-3">Optional Filters</h4>
+          <div class="mb-4"><label class="block text-sm text-gray-400 mb-2">Faith/Community Needs</label> <select id="community-filter" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"> <option value="">No preference</option> <option value="mosque">Mosque nearby</option> <option value="church">Church nearby</option> <option value="temple">Temple nearby</option> <option value="synagogue">Synagogue nearby</option> <option value="gurdwara">Gurdwara nearby</option> </select>
+          </div>
+          <div><label class="block text-sm text-gray-400 mb-2">Max Commute to City Centre (mins)</label> <input type="number" id="commute-target" min="10" max="120" placeholder="e.g., 45" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all">
+          </div>
+         </div>
+        </div>
+       </div><!-- Error Message -->
+       <div id="form-error" class="hidden mt-6 p-4 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm"></div><!-- Submit Button -->
+       <div class="mt-8 flex justify-center"><button type="submit" class="px-8 py-4 bg-brand-500 hover:bg-brand-600 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 flex items-center gap-2">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+         </svg> Find My Neighbourhoods </button>
+       </div>
+      </form>
+     </div><!-- Results Section -->
+     <div id="results-section" class="hidden"><!-- Results Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+       <div>
+        <h2 class="font-display text-2xl font-bold">Your Top Recommendations</h2>
+        <p class="text-gray-400 text-sm" id="results-subtitle">Based on your preferences</p>
+       </div>
+       <div class="flex items-center gap-3 no-print"><button onclick="showCompareMode()" id="compare-btn" class="px-4 py-2 glass-card rounded-lg text-sm font-medium hover:bg-white/10 transition-all flex items-center gap-2">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+         </svg> Compare </button> <button onclick="downloadPDF()" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+         </svg> Download PDF </button> <button onclick="resetForm()" class="px-4 py-2 glass-card rounded-lg text-sm font-medium hover:bg-white/10 transition-all"> New Search </button>
+       </div>
+      </div><!-- Results Tabs -->
+      <div class="flex gap-2 mb-6 no-print"><button onclick="switchTab('list')" id="tab-list" class="px-4 py-2 rounded-lg text-sm font-medium border border-transparent tab-active transition-all"> 📋 List View </button> <button onclick="switchTab('map')" id="tab-map" class="px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-white/5 transition-all"> 🗺️ Map View </button> <button onclick="switchTab('compare')" id="tab-compare" class="px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-white/5 transition-all hidden"> 📊 Compare </button>
+      </div><!-- List View -->
+      <div id="list-view" class="space-y-4"><!-- Results will be populated here -->
+      </div><!-- Map View -->
+      <div id="map-view" class="hidden">
+       <div id="map" class="h-96 md:h-[500px] rounded-2xl overflow-hidden glass-card"></div>
+      </div><!-- Compare View -->
+      <div id="compare-view" class="hidden">
+       <div class="mb-4 text-sm text-gray-400">
+        Select 2-3 neighbourhoods to compare
+       </div>
+       <div id="compare-selection" class="flex flex-wrap gap-2 mb-6"></div>
+       <div id="compare-grid" class="grid md:grid-cols-3 gap-4"></div>
+      </div><!-- Financial Summary -->
+      <div id="financial-summary" class="mt-8 glass-card rounded-2xl p-6">
+       <h3 class="font-display text-lg font-semibold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg> Financial Overview</h3>
+       <div id="financial-content" class="grid md:grid-cols-3 gap-6"><!-- Financial details populated here -->
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+   <div class="glass-card rounded-xl px-6 py-4 flex items-center gap-3">
+    <svg id="toast-icon" class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg><span id="toast-message" class="text-sm font-medium">Action completed</span>
+   </div>
+  </div>
+  <script>
+    // =====================================================
+    // SEED DATA - Neighbourhood data for 3 UK cities
+    // =====================================================
+    
+    const neighbourhoodData = {
+      london: [
+        { name: "Greenwich", avg_rent: 1650, crime_index: 25, transport_index: 85, lifestyle_index: 78, schools_index: 82, amenities: ["park", "market", "museum", "church"], lat: 51.4769, lng: -0.0005, commute_mins: 25 },
+        { name: "Brixton", avg_rent: 1500, crime_index: 45, transport_index: 90, lifestyle_index: 88, schools_index: 65, amenities: ["market", "nightlife", "church", "mosque"], lat: 51.4613, lng: -0.1156, commute_mins: 15 },
+        { name: "Hackney", avg_rent: 1700, crime_index: 40, transport_index: 82, lifestyle_index: 92, schools_index: 70, amenities: ["park", "cafe", "art", "synagogue"], lat: 51.5450, lng: -0.0553, commute_mins: 20 },
+        { name: "Islington", avg_rent: 1900, crime_index: 30, transport_index: 95, lifestyle_index: 90, schools_index: 75, amenities: ["restaurant", "theatre", "pub", "church"], lat: 51.5362, lng: -0.1030, commute_mins: 10 },
+        { name: "Wimbledon", avg_rent: 1800, crime_index: 15, transport_index: 80, lifestyle_index: 75, schools_index: 90, amenities: ["park", "tennis", "village", "church"], lat: 51.4214, lng: -0.2064, commute_mins: 30 },
+        { name: "Lewisham", avg_rent: 1400, crime_index: 38, transport_index: 78, lifestyle_index: 70, schools_index: 68, amenities: ["market", "park", "church", "mosque"], lat: 51.4415, lng: -0.0117, commute_mins: 22 },
+        { name: "Stratford", avg_rent: 1600, crime_index: 42, transport_index: 92, lifestyle_index: 80, schools_index: 72, amenities: ["shopping", "olympic", "park", "mosque"], lat: 51.5430, lng: -0.0006, commute_mins: 12 },
+        { name: "Camden", avg_rent: 1950, crime_index: 48, transport_index: 94, lifestyle_index: 95, schools_index: 62, amenities: ["market", "nightlife", "music", "mosque"], lat: 51.5390, lng: -0.1426, commute_mins: 8 },
+        { name: "Ealing", avg_rent: 1550, crime_index: 22, transport_index: 85, lifestyle_index: 72, schools_index: 84, amenities: ["park", "broadway", "gurdwara", "temple"], lat: 51.5130, lng: -0.3089, commute_mins: 28 },
+        { name: "Walthamstow", avg_rent: 1450, crime_index: 35, transport_index: 75, lifestyle_index: 82, schools_index: 70, amenities: ["market", "village", "wetlands", "mosque"], lat: 51.5908, lng: -0.0134, commute_mins: 25 },
+        { name: "Peckham", avg_rent: 1400, crime_index: 50, transport_index: 72, lifestyle_index: 85, schools_index: 60, amenities: ["art", "rooftop", "market", "church"], lat: 51.4743, lng: -0.0690, commute_mins: 20 },
+        { name: "Clapham", avg_rent: 1750, crime_index: 28, transport_index: 88, lifestyle_index: 86, schools_index: 74, amenities: ["common", "restaurant", "pub", "church"], lat: 51.4620, lng: -0.1380, commute_mins: 18 },
+        { name: "Dulwich", avg_rent: 1850, crime_index: 12, transport_index: 65, lifestyle_index: 70, schools_index: 95, amenities: ["gallery", "village", "park", "church"], lat: 51.4452, lng: -0.0838, commute_mins: 35 },
+        { name: "Finsbury Park", avg_rent: 1500, crime_index: 44, transport_index: 90, lifestyle_index: 78, schools_index: 65, amenities: ["park", "diverse", "market", "mosque"], lat: 51.5640, lng: -0.1066, commute_mins: 12 },
+        { name: "Tooting", avg_rent: 1450, crime_index: 30, transport_index: 82, lifestyle_index: 75, schools_index: 72, amenities: ["broadway", "lido", "diverse", "temple"], lat: 51.4270, lng: -0.1680, commute_mins: 25 },
+        { name: "Barking", avg_rent: 1200, crime_index: 52, transport_index: 75, lifestyle_index: 55, schools_index: 58, amenities: ["affordable", "riverside", "mosque", "gurdwara"], lat: 51.5362, lng: 0.0817, commute_mins: 30 },
+        { name: "Hammersmith", avg_rent: 1800, crime_index: 32, transport_index: 92, lifestyle_index: 80, schools_index: 76, amenities: ["riverside", "shopping", "theatre", "church"], lat: 51.4927, lng: -0.2339, commute_mins: 15 },
+        { name: "Richmond", avg_rent: 2100, crime_index: 10, transport_index: 78, lifestyle_index: 85, schools_index: 92, amenities: ["park", "riverside", "village", "church"], lat: 51.4613, lng: -0.3037, commute_mins: 32 },
+        { name: "Croydon", avg_rent: 1250, crime_index: 45, transport_index: 80, lifestyle_index: 65, schools_index: 68, amenities: ["shopping", "tram", "diverse", "mosque"], lat: 51.3762, lng: -0.0982, commute_mins: 35 },
+        { name: "Woolwich", avg_rent: 1350, crime_index: 48, transport_index: 82, lifestyle_index: 62, schools_index: 65, amenities: ["arsenal", "riverside", "market", "mosque"], lat: 51.4905, lng: 0.0604, commute_mins: 28 },
+        { name: "Highbury", avg_rent: 1850, crime_index: 26, transport_index: 88, lifestyle_index: 82, schools_index: 78, amenities: ["fields", "cafe", "quiet", "synagogue"], lat: 51.5519, lng: -0.0989, commute_mins: 15 },
+        { name: "Forest Hill", avg_rent: 1400, crime_index: 28, transport_index: 70, lifestyle_index: 72, schools_index: 75, amenities: ["horniman", "village", "park", "church"], lat: 51.4390, lng: -0.0534, commute_mins: 28 },
+        { name: "Stoke Newington", avg_rent: 1650, crime_index: 34, transport_index: 72, lifestyle_index: 88, schools_index: 72, amenities: ["village", "cemetery", "cafe", "synagogue"], lat: 51.5617, lng: -0.0747, commute_mins: 22 },
+        { name: "Bow", avg_rent: 1550, crime_index: 40, transport_index: 85, lifestyle_index: 75, schools_index: 68, amenities: ["canal", "park", "market", "mosque"], lat: 51.5318, lng: -0.0197, commute_mins: 15 }
+      ],
+      manchester: [
+        { name: "Northern Quarter", avg_rent: 1100, crime_index: 48, transport_index: 95, lifestyle_index: 95, schools_index: 55, amenities: ["nightlife", "cafe", "vintage", "church"], lat: 53.4839, lng: -2.2366, commute_mins: 5 },
+        { name: "Didsbury", avg_rent: 1050, crime_index: 18, transport_index: 80, lifestyle_index: 85, schools_index: 88, amenities: ["village", "park", "restaurant", "church"], lat: 53.4167, lng: -2.2333, commute_mins: 25 },
+        { name: "Chorlton", avg_rent: 950, crime_index: 22, transport_index: 75, lifestyle_index: 88, schools_index: 82, amenities: ["bohemian", "meadows", "market", "church"], lat: 53.4408, lng: -2.2755, commute_mins: 22 },
+        { name: "Ancoats", avg_rent: 1150, crime_index: 35, transport_index: 90, lifestyle_index: 90, schools_index: 60, amenities: ["coffee", "modern", "canal", "church"], lat: 53.4850, lng: -2.2209, commute_mins: 8 },
+        { name: "Salford Quays", avg_rent: 1000, crime_index: 28, transport_index: 85, lifestyle_index: 78, schools_index: 65, amenities: ["media", "waterfront", "museum", "church"], lat: 53.4722, lng: -2.2912, commute_mins: 15 },
+        { name: "Levenshulme", avg_rent: 800, crime_index: 38, transport_index: 70, lifestyle_index: 75, schools_index: 68, amenities: ["market", "diverse", "affordable", "mosque"], lat: 53.4407, lng: -2.1889, commute_mins: 20 },
+        { name: "Sale", avg_rent: 950, crime_index: 20, transport_index: 82, lifestyle_index: 72, schools_index: 85, amenities: ["waterpark", "market", "family", "church"], lat: 53.4244, lng: -2.3219, commute_mins: 25 },
+        { name: "Withington", avg_rent: 850, crime_index: 32, transport_index: 72, lifestyle_index: 78, schools_index: 75, amenities: ["village", "student", "diverse", "mosque"], lat: 53.4316, lng: -2.2241, commute_mins: 22 },
+        { name: "Prestwich", avg_rent: 900, crime_index: 25, transport_index: 75, lifestyle_index: 70, schools_index: 80, amenities: ["heaton", "village", "family", "synagogue"], lat: 53.5317, lng: -2.2867, commute_mins: 20 },
+        { name: "Rusholme", avg_rent: 750, crime_index: 45, transport_index: 78, lifestyle_index: 72, schools_index: 62, amenities: ["curry_mile", "diverse", "student", "mosque"], lat: 53.4493, lng: -2.2196, commute_mins: 15 },
+        { name: "Altrincham", avg_rent: 1100, crime_index: 15, transport_index: 78, lifestyle_index: 82, schools_index: 90, amenities: ["market", "affluent", "village", "church"], lat: 53.3874, lng: -2.3541, commute_mins: 30 },
+        { name: "Castlefield", avg_rent: 1200, crime_index: 30, transport_index: 88, lifestyle_index: 85, schools_index: 58, amenities: ["canal", "bars", "roman", "church"], lat: 53.4752, lng: -2.2547, commute_mins: 10 },
+        { name: "Fallowfield", avg_rent: 700, crime_index: 48, transport_index: 72, lifestyle_index: 75, schools_index: 60, amenities: ["student", "park", "nightlife", "mosque"], lat: 53.4408, lng: -2.2156, commute_mins: 18 },
+        { name: "Heaton Moor", avg_rent: 950, crime_index: 18, transport_index: 68, lifestyle_index: 75, schools_index: 85, amenities: ["village", "park", "family", "church"], lat: 53.4302, lng: -2.1755, commute_mins: 25 },
+        { name: "Whalley Range", avg_rent: 850, crime_index: 35, transport_index: 70, lifestyle_index: 72, schools_index: 70, amenities: ["diverse", "park", "community", "mosque"], lat: 53.4474, lng: -2.2692, commute_mins: 20 },
+        { name: "Stretford", avg_rent: 850, crime_index: 32, transport_index: 80, lifestyle_index: 68, schools_index: 72, amenities: ["mall", "football", "tram", "gurdwara"], lat: 53.4467, lng: -2.3089, commute_mins: 18 },
+        { name: "Spinningfields", avg_rent: 1400, crime_index: 22, transport_index: 95, lifestyle_index: 88, schools_index: 52, amenities: ["business", "bars", "modern", "church"], lat: 53.4801, lng: -2.2522, commute_mins: 5 },
+        { name: "Hulme", avg_rent: 900, crime_index: 42, transport_index: 85, lifestyle_index: 70, schools_index: 58, amenities: ["park", "diverse", "affordable", "mosque"], lat: 53.4664, lng: -2.2536, commute_mins: 12 },
+        { name: "Eccles", avg_rent: 750, crime_index: 38, transport_index: 75, lifestyle_index: 62, schools_index: 68, amenities: ["market", "affordable", "tram", "church"], lat: 53.4836, lng: -2.3344, commute_mins: 20 },
+        { name: "Marple", avg_rent: 900, crime_index: 12, transport_index: 65, lifestyle_index: 70, schools_index: 88, amenities: ["canal", "nature", "village", "church"], lat: 53.3994, lng: -2.0667, commute_mins: 35 }
+      ],
+      birmingham: [
+        { name: "Jewellery Quarter", avg_rent: 950, crime_index: 35, transport_index: 90, lifestyle_index: 88, schools_index: 58, amenities: ["historic", "cafe", "creative", "church"], lat: 52.4897, lng: -1.9089, commute_mins: 10 },
+        { name: "Digbeth", avg_rent: 850, crime_index: 48, transport_index: 85, lifestyle_index: 92, schools_index: 52, amenities: ["arts", "nightlife", "street_food", "church"], lat: 52.4753, lng: -1.8853, commute_mins: 8 },
+        { name: "Moseley", avg_rent: 900, crime_index: 25, transport_index: 72, lifestyle_index: 88, schools_index: 78, amenities: ["village", "bohemian", "park", "church"], lat: 52.4434, lng: -1.8788, commute_mins: 20 },
+        { name: "Harborne", avg_rent: 950, crime_index: 18, transport_index: 70, lifestyle_index: 82, schools_index: 85, amenities: ["high_street", "park", "family", "church"], lat: 52.4583, lng: -1.9492, commute_mins: 22 },
+        { name: "Edgbaston", avg_rent: 1100, crime_index: 15, transport_index: 75, lifestyle_index: 78, schools_index: 90, amenities: ["cricket", "reservoir", "affluent", "church"], lat: 52.4633, lng: -1.9167, commute_mins: 18 },
+        { name: "Bournville", avg_rent: 950, crime_index: 12, transport_index: 72, lifestyle_index: 75, schools_index: 88, amenities: ["cadbury", "village", "green", "church"], lat: 52.4299, lng: -1.9281, commute_mins: 25 },
+        { name: "Kings Heath", avg_rent: 850, crime_index: 28, transport_index: 70, lifestyle_index: 82, schools_index: 75, amenities: ["high_street", "diverse", "park", "mosque"], lat: 52.4365, lng: -1.8944, commute_mins: 22 },
+        { name: "Sutton Coldfield", avg_rent: 1000, crime_index: 15, transport_index: 75, lifestyle_index: 72, schools_index: 92, amenities: ["park", "affluent", "family", "church"], lat: 52.5639, lng: -1.8244, commute_mins: 28 },
+        { name: "Selly Oak", avg_rent: 700, crime_index: 42, transport_index: 80, lifestyle_index: 70, schools_index: 62, amenities: ["student", "canal", "university", "gurdwara"], lat: 52.4407, lng: -1.9331, commute_mins: 18 },
+        { name: "Stirchley", avg_rent: 750, crime_index: 32, transport_index: 72, lifestyle_index: 78, schools_index: 70, amenities: ["craft", "brewery", "community", "church"], lat: 52.4339, lng: -1.9178, commute_mins: 20 },
+        { name: "Hall Green", avg_rent: 800, crime_index: 25, transport_index: 70, lifestyle_index: 68, schools_index: 78, amenities: ["suburban", "diverse", "family", "mosque"], lat: 52.4389, lng: -1.8389, commute_mins: 22 },
+        { name: "Erdington", avg_rent: 700, crime_index: 45, transport_index: 78, lifestyle_index: 62, schools_index: 65, amenities: ["abbey", "affordable", "diverse", "gurdwara"], lat: 52.5244, lng: -1.8389, commute_mins: 20 },
+        { name: "Handsworth", avg_rent: 650, crime_index: 52, transport_index: 75, lifestyle_index: 65, schools_index: 60, amenities: ["diverse", "affordable", "park", "gurdwara"], lat: 52.5111, lng: -1.9311, commute_mins: 18 },
+        { name: "Acocks Green", avg_rent: 750, crime_index: 35, transport_index: 75, lifestyle_index: 65, schools_index: 72, amenities: ["suburban", "diverse", "park", "mosque"], lat: 52.4489, lng: -1.8222, commute_mins: 22 },
+        { name: "Northfield", avg_rent: 750, crime_index: 30, transport_index: 72, lifestyle_index: 62, schools_index: 75, amenities: ["shopping", "family", "park", "church"], lat: 52.4128, lng: -1.9656, commute_mins: 28 },
+        { name: "Small Heath", avg_rent: 600, crime_index: 55, transport_index: 78, lifestyle_index: 58, schools_index: 58, amenities: ["diverse", "affordable", "market", "mosque"], lat: 52.4633, lng: -1.8544, commute_mins: 15 },
+        { name: "Aston", avg_rent: 650, crime_index: 58, transport_index: 82, lifestyle_index: 55, schools_index: 55, amenities: ["villa", "diverse", "affordable", "mosque"], lat: 52.5039, lng: -1.8833, commute_mins: 12 },
+        { name: "Solihull", avg_rent: 1050, crime_index: 12, transport_index: 78, lifestyle_index: 75, schools_index: 92, amenities: ["affluent", "shopping", "family", "church"], lat: 52.4128, lng: -1.7778, commute_mins: 25 },
+        { name: "Sparkbrook", avg_rent: 650, crime_index: 50, transport_index: 75, lifestyle_index: 62, schools_index: 58, amenities: ["diverse", "market", "affordable", "mosque"], lat: 52.4533, lng: -1.8667, commute_mins: 15 },
+        { name: "Perry Barr", avg_rent: 700, crime_index: 42, transport_index: 78, lifestyle_index: 60, schools_index: 65, amenities: ["park", "stadium", "diverse", "gurdwara"], lat: 52.5167, lng: -1.9000, commute_mins: 15 }
+      ]
+    };
+
+    // =====================================================
+    // SCORING ENGINE
+    // =====================================================
+    
+    function calculateNetMonthlyIncome(annualSalary) {
+      // Simplified UK tax calculation
+      let tax = 0;
+      let ni = 0;
+      
+      // Income tax (2024 rates simplified)
+      if (annualSalary > 125140) {
+        tax = (annualSalary - 125140) * 0.45 + (125140 - 50270) * 0.4 + (50270 - 12570) * 0.2;
+      } else if (annualSalary > 50270) {
+        tax = (annualSalary - 50270) * 0.4 + (50270 - 12570) * 0.2;
+      } else if (annualSalary > 12570) {
+        tax = (annualSalary - 12570) * 0.2;
+      }
+      
+      // National Insurance (simplified)
+      if (annualSalary > 50270) {
+        ni = (annualSalary - 50270) * 0.02 + (50270 - 12570) * 0.12;
+      } else if (annualSalary > 12570) {
+        ni = (annualSalary - 12570) * 0.12;
+      }
+      
+      return (annualSalary - tax - ni) / 12;
+    }
+
+    function calculateAffordabilityScore(avgRent, rentBudget, netMonthlyIncome) {
+      // Score based on two factors:
+      // 1. Is the rent within budget? (50% weight)
+      // 2. What's the rent-to-income ratio? (50% weight)
+      
+      const budgetDiff = (rentBudget - avgRent) / rentBudget;
+      const budgetScore = Math.max(0, Math.min(100, 50 + budgetDiff * 100));
+      
+      const rentToIncome = avgRent / netMonthlyIncome;
+      let ratioScore;
+      if (rentToIncome <= 0.25) ratioScore = 100;
+      else if (rentToIncome <= 0.30) ratioScore = 85;
+      else if (rentToIncome <= 0.35) ratioScore = 70;
+      else if (rentToIncome <= 0.40) ratioScore = 50;
+      else if (rentToIncome <= 0.50) ratioScore = 30;
+      else ratioScore = 10;
+      
+      return Math.round((budgetScore * 0.5 + ratioScore * 0.5));
+    }
+
+    function calculateSafetyScore(crimeIndex) {
+      // Crime index is 0-100 where higher = more crime
+      // Invert to get safety score
+      return Math.round(100 - crimeIndex);
+    }
+
+    function calculateAmenityBoost(amenities, communityFilter) {
+      if (!communityFilter) return 0;
+      const hasMatch = amenities.some(a => a.toLowerCase().includes(communityFilter.toLowerCase()));
+      return hasMatch ? 10 : 0;
+    }
+
+    function calculateOverallScore(scores, weights, amenityBoost) {
+      const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+      if (totalWeight === 0) return 50;
+      
+      let weightedSum = 0;
+      weightedSum += scores.affordability * weights.affordability;
+      weightedSum += scores.safety * weights.safety;
+      weightedSum += scores.transport * weights.transport;
+      weightedSum += scores.lifestyle * weights.lifestyle;
+      weightedSum += scores.schools * weights.schools;
+      
+      const baseScore = weightedSum / totalWeight;
+      return Math.round(Math.min(100, baseScore + amenityBoost));
+    }
+
+    function scoreNeighbourhoods(city, userPrefs) {
+      const neighbourhoods = neighbourhoodData[city];
+      if (!neighbourhoods) return [];
+      
+      const netMonthlyIncome = calculateNetMonthlyIncome(userPrefs.salary);
+      
+      const weights = {
+        affordability: userPrefs.priorities.affordability,
+        safety: userPrefs.priorities.safety,
+        transport: userPrefs.priorities.transport,
+        lifestyle: userPrefs.priorities.lifestyle,
+        schools: userPrefs.hasChildren ? userPrefs.priorities.schools : 0
+      };
+      
+      const scored = neighbourhoods.map(n => {
+        const scores = {
+          affordability: calculateAffordabilityScore(n.avg_rent, userPrefs.rentBudget, netMonthlyIncome),
+          safety: calculateSafetyScore(n.crime_index),
+          transport: n.transport_index,
+          lifestyle: n.lifestyle_index,
+          schools: n.schools_index
+        };
+        
+        const amenityBoost = calculateAmenityBoost(n.amenities, userPrefs.communityFilter);
+        const overall = calculateOverallScore(scores, weights, amenityBoost);
+        
+        // Financial projections
+        const rentToIncome = n.avg_rent / netMonthlyIncome;
+        const essentials = netMonthlyIncome * 0.3; // Food, utilities, transport estimate
+        const leftover = netMonthlyIncome - n.avg_rent - essentials;
+        
+        const warnings = [];
+        if (rentToIncome > 0.35) warnings.push('Rent exceeds 35% of net income');
+        if (leftover < 300) warnings.push('Low monthly surplus after essentials');
+        if (n.avg_rent > userPrefs.rentBudget) warnings.push('Above your rent budget');
+        
+        // Commute filter
+        let commuteMatch = true;
+        if (userPrefs.commuteTarget && n.commute_mins > userPrefs.commuteTarget) {
+          commuteMatch = false;
+        }
+        
+        return {
+          ...n,
+          scores,
+          overall,
+          rentToIncome: Math.round(rentToIncome * 100),
+          monthlyLeftover: Math.round(leftover),
+          netMonthlyIncome: Math.round(netMonthlyIncome),
+          warnings,
+          amenityBoost,
+          commuteMatch,
+          scoreBreakdown: {
+            weights,
+            rawScores: scores,
+            amenityBonus: amenityBoost
+          }
+        };
+      });
+      
+      // Filter by commute if specified
+      let filtered = scored;
+      if (userPrefs.commuteTarget) {
+        filtered = scored.filter(n => n.commuteMatch);
+      }
+      
+      // Sort by overall score
+      return filtered.sort((a, b) => b.overall - a.overall).slice(0, 5);
+    }
+
+    // =====================================================
+    // UI FUNCTIONS
+    // =====================================================
+    
+    let currentResults = [];
+    let selectedForCompare = new Set();
+    let map = null;
+    let markers = [];
+    
+    const defaultConfig = {
+      hero_title: 'Find Your Perfect Neighbourhood',
+      hero_subtitle: 'Make data-driven relocation decisions with transparent scoring, financial projections, and neighbourhood insights tailored to your priorities.',
+      cta_button_text: 'Get Recommendations →',
+      primary_color: '#22c55e',
+      secondary_color: '#0a0f1a',
+      text_color: '#ffffff',
+      accent_color: '#4ade80',
+      surface_color: 'rgba(255, 255, 255, 0.03)'
+    };
+
+    function showLanding() {
+      document.getElementById('landing-page').classList.remove('hidden');
+      document.getElementById('app-page').classList.add('hidden');
+      logAnalytics('view_landing');
+    }
+
+    function showApp() {
+      document.getElementById('landing-page').classList.add('hidden');
+      document.getElementById('app-page').classList.remove('hidden');
+      document.getElementById('form-section').classList.remove('hidden');
+      document.getElementById('results-section').classList.add('hidden');
+      logAnalytics('view_app');
+    }
+
+    function updateSliderValue(name, value) {
+      document.getElementById(`${name}-value`).textContent = value;
+    }
+
+    function switchTab(tab) {
+      ['list', 'map', 'compare'].forEach(t => {
+        document.getElementById(`tab-${t}`)?.classList.remove('tab-active');
+        document.getElementById(`${t}-view`)?.classList.add('hidden');
+      });
+      
+      document.getElementById(`tab-${tab}`).classList.add('tab-active');
+      document.getElementById(`${tab}-view`).classList.remove('hidden');
+      
+      if (tab === 'map' && currentResults.length > 0) {
+        setTimeout(() => initMap(), 100);
+      }
+      
+      logAnalytics('switch_tab', { tab });
+    }
+
+    function showCompareMode() {
+      document.getElementById('tab-compare').classList.remove('hidden');
+      switchTab('compare');
+      renderCompareSelection();
+    }
+
+    function toggleExpand(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('expanded');
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      const msg = document.getElementById('toast-message');
+      
+      msg.textContent = message;
+      
+      if (type === 'success') {
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
+        icon.classList.remove('text-red-400');
+        icon.classList.add('text-brand-400');
+      } else {
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>';
+        icon.classList.remove('text-brand-400');
+        icon.classList.add('text-red-400');
+      }
+      
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3000);
+    }
+
+    function resetForm() {
+      document.getElementById('results-section').classList.add('hidden');
+      document.getElementById('form-section').classList.remove('hidden');
+      currentResults = [];
+      selectedForCompare.clear();
+      logAnalytics('reset_form');
+    }
+
+    function saveResults() {
+      if (currentResults.length === 0) {
+        showToast('No results to save', 'error');
+        return;
+      }
+      
+      const saveData = {
+        timestamp: Date.now(),
+        results: currentResults,
+        formData: getFormData()
+      };
+      
+      localStorage.setItem('reloc8_saved', JSON.stringify(saveData));
+      showToast('Results saved successfully!');
+      logAnalytics('save_results');
+    }
+
+    function loadSavedResults() {
+      const saved = localStorage.getItem('reloc8_saved');
+      if (!saved) {
+        showToast('No saved results found', 'error');
+        return;
+      }
+      
+      try {
+        const data = JSON.parse(saved);
+        currentResults = data.results;
+        renderResults(data.formData);
+        document.getElementById('form-section').classList.add('hidden');
+        document.getElementById('results-section').classList.remove('hidden');
+        showToast('Saved results loaded!');
+        logAnalytics('load_saved');
+      } catch (e) {
+        showToast('Error loading saved results', 'error');
+      }
+    }
+
+    function getFormData() {
+      return {
+        city: document.getElementById('city').value,
+        salary: parseInt(document.getElementById('salary').value),
+        rentBudget: parseInt(document.getElementById('rent-budget').value),
+        household: document.querySelector('input[name="household"]:checked').value,
+        hasChildren: document.getElementById('has-children').checked,
+        priorities: {
+          affordability: parseInt(document.getElementById('priority-affordability').value),
+          safety: parseInt(document.getElementById('priority-safety').value),
+          transport: parseInt(document.getElementById('priority-transport').value),
+          lifestyle: parseInt(document.getElementById('priority-lifestyle').value),
+          schools: parseInt(document.getElementById('priority-schools').value)
+        },
+        communityFilter: document.getElementById('community-filter').value,
+        commuteTarget: document.getElementById('commute-target').value ? parseInt(document.getElementById('commute-target').value) : null
+      };
+    }
+
+    function validateForm(data) {
+      const errors = [];
+      
+      if (!data.city) errors.push('Please select a city');
+      if (!data.salary || data.salary < 10000) errors.push('Please enter a valid salary (minimum £10,000)');
+      if (!data.rentBudget || data.rentBudget < 200) errors.push('Please enter a valid rent budget (minimum £200)');
+      
+      return errors;
+    }
+
+    // =====================================================
+    // RESULTS RENDERING
+    // =====================================================
+    
+    function renderResults(formData) {
+      const listView = document.getElementById('list-view');
+      const cityNames = { london: 'London', manchester: 'Manchester', birmingham: 'Birmingham' };
+      
+      document.getElementById('results-subtitle').textContent = 
+        `Top 5 neighbourhoods in ${cityNames[formData.city]} for your criteria`;
+      
+      listView.innerHTML = currentResults.map((n, i) => `
+        <div class="glass-card rounded-2xl p-6 hover:bg-white/5 transition-all">
+          <div class="flex flex-col md:flex-row md:items-start gap-6">
+            <!-- Rank & Name -->
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center shrink-0">
+                <span class="font-display text-xl font-bold text-brand-400">#${i + 1}</span>
+              </div>
+              <div>
+                <h3 class="font-display text-xl font-semibold">${n.name}</h3>
+                <p class="text-gray-400 text-sm">£${n.avg_rent.toLocaleString()}/month avg rent</p>
+              </div>
+            </div>
+            
+            <!-- Match Score Circle -->
+            <div class="flex items-center gap-4 md:ml-auto">
+              <div class="relative w-20 h-20">
+                <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none" stroke="${n.overall >= 70 ? '#22c55e' : n.overall >= 50 ? '#eab308' : '#ef4444'}" stroke-width="3"
+                    stroke-dasharray="${n.overall}, 100"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <span class="font-display text-xl font-bold">${n.overall}</span>
+                </div>
+              </div>
+              <div class="text-sm">
+                <div class="text-gray-400">Match</div>
+                <div class="font-medium">Confidence</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Score Bars -->
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
+            ${renderScoreBar('Affordability', n.scores.affordability, '💰')}
+            ${renderScoreBar('Safety', n.scores.safety, '🛡️')}
+            ${renderScoreBar('Transport', n.scores.transport, '🚇')}
+            ${renderScoreBar('Lifestyle', n.scores.lifestyle, '☕')}
+            ${formData.hasChildren ? renderScoreBar('Schools', n.scores.schools, '🎓') : ''}
+          </div>
+          
+          <!-- Warnings -->
+          ${n.warnings.length > 0 ? `
+            <div class="mt-4 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+              <div class="flex items-start gap-2">
+                <span class="text-yellow-400">⚠️</span>
+                <div class="text-sm text-yellow-400">
+                  ${n.warnings.join(' • ')}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+          
+          <!-- Financial Quick View -->
+          <div class="grid grid-cols-3 gap-4 mt-4 p-4 rounded-xl bg-white/5">
+            <div>
+              <div class="text-xs text-gray-400">Rent-to-Income</div>
+              <div class="font-display font-semibold ${n.rentToIncome > 35 ? 'text-red-400' : n.rentToIncome > 30 ? 'text-yellow-400' : 'text-brand-400'}">${n.rentToIncome}%</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400">Monthly Leftover</div>
+              <div class="font-display font-semibold ${n.monthlyLeftover < 300 ? 'text-red-400' : 'text-brand-400'}">£${n.monthlyLeftover.toLocaleString()}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400">Commute</div>
+              <div class="font-display font-semibold">${n.commute_mins} mins</div>
+            </div>
+          </div>
+          
+          <!-- Why This Score - Expandable -->
+          <div class="mt-4">
+            <button onclick="toggleExpand('explain-${i}')" class="flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Why this score?
+            </button>
+            <div id="explain-${i}" class="expand-content">
+              <div class="mt-3 p-4 rounded-xl bg-white/5 text-sm space-y-2">
+                <p><strong>Affordability (${n.scores.affordability}/100):</strong> Avg rent £${n.avg_rent} vs your £${formData.rentBudget} budget. Rent-to-income ratio: ${n.rentToIncome}%.</p>
+                <p><strong>Safety (${n.scores.safety}/100):</strong> Inverted crime index. Lower crime = higher safety score.</p>
+                <p><strong>Transport (${n.scores.transport}/100):</strong> Based on public transport accessibility and connections.</p>
+                <p><strong>Lifestyle (${n.scores.lifestyle}/100):</strong> Restaurants, cafes, entertainment, parks nearby.</p>
+                ${formData.hasChildren ? `<p><strong>Schools (${n.scores.schools}/100):</strong> Quality of local schools and education options.</p>` : ''}
+                ${n.amenityBoost > 0 ? `<p><strong>Community Bonus (+${n.amenityBoost}):</strong> Area has ${formData.communityFilter} facilities nearby.</p>` : ''}
+                <p class="text-gray-400 pt-2 border-t border-gray-700">
+                  <strong>Your weights:</strong> Affordability (${formData.priorities.affordability}), Safety (${formData.priorities.safety}), Transport (${formData.priorities.transport}), Lifestyle (${formData.priorities.lifestyle})${formData.hasChildren ? `, Schools (${formData.priorities.schools})` : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Compare Checkbox -->
+          <label class="flex items-center gap-2 mt-4 cursor-pointer no-print">
+            <input type="checkbox" onchange="toggleCompare('${n.name}')" ${selectedForCompare.has(n.name) ? 'checked' : ''} 
+              class="w-4 h-4 rounded bg-white/5 border-gray-700 text-brand-500 focus:ring-brand-500">
+            <span class="text-sm text-gray-400">Add to comparison</span>
+          </label>
+        </div>
+      `).join('');
+      
+      renderFinancialSummary(formData);
+    }
+
+    function renderScoreBar(label, score, emoji) {
+      const color = score >= 70 ? 'bg-brand-500' : score >= 50 ? 'bg-yellow-500' : 'bg-red-500';
+      return `
+        <div>
+          <div class="flex items-center gap-1 mb-1">
+            <span class="text-xs">${emoji}</span>
+            <span class="text-xs text-gray-400">${label}</span>
+          </div>
+          <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div class="h-full ${color} rounded-full transition-all" style="width: ${score}%"></div>
+          </div>
+          <div class="text-xs text-gray-400 mt-1">${score}/100</div>
+        </div>
+      `;
+    }
+
+    function renderFinancialSummary(formData) {
+      const netMonthly = calculateNetMonthlyIncome(formData.salary);
+      const content = document.getElementById('financial-content');
+      
+      content.innerHTML = `
+        <div class="text-center p-4 rounded-xl bg-white/5">
+          <div class="text-3xl mb-2">💵</div>
+          <div class="text-2xl font-display font-bold text-brand-400">£${Math.round(netMonthly).toLocaleString()}</div>
+          <div class="text-sm text-gray-400">Est. Net Monthly Income</div>
+        </div>
+        <div class="text-center p-4 rounded-xl bg-white/5">
+          <div class="text-3xl mb-2">🏠</div>
+          <div class="text-2xl font-display font-bold">£${formData.rentBudget.toLocaleString()}</div>
+          <div class="text-sm text-gray-400">Your Rent Budget</div>
+        </div>
+        <div class="text-center p-4 rounded-xl bg-white/5">
+          <div class="text-3xl mb-2">📊</div>
+          <div class="text-2xl font-display font-bold ${(formData.rentBudget / netMonthly) > 0.35 ? 'text-yellow-400' : 'text-brand-400'}">${Math.round((formData.rentBudget / netMonthly) * 100)}%</div>
+          <div class="text-sm text-gray-400">Budget-to-Income Ratio</div>
+        </div>
+      `;
+    }
+
+    // =====================================================
+    // COMPARISON VIEW
+    // =====================================================
+    
+    function toggleCompare(name) {
+      if (selectedForCompare.has(name)) {
+        selectedForCompare.delete(name);
+      } else {
+        if (selectedForCompare.size >= 3) {
+          showToast('Maximum 3 neighbourhoods for comparison', 'error');
+          return;
+        }
+        selectedForCompare.add(name);
+      }
+      
+      if (document.getElementById('compare-view').classList.contains('hidden') === false) {
+        renderCompareSelection();
+        renderCompareGrid();
+      }
+    }
+
+    function renderCompareSelection() {
+      const container = document.getElementById('compare-selection');
+      container.innerHTML = currentResults.map(n => `
+        <label class="cursor-pointer">
+          <input type="checkbox" onchange="toggleCompare('${n.name}')" ${selectedForCompare.has(n.name) ? 'checked' : ''} class="hidden peer">
+          <div class="px-3 py-2 rounded-lg border border-gray-700 text-sm peer-checked:border-brand-500 peer-checked:bg-brand-500/20 transition-all">
+            ${n.name}
+          </div>
+        </label>
+      `).join('');
+      
+      renderCompareGrid();
+    }
+
+    function renderCompareGrid() {
+      const grid = document.getElementById('compare-grid');
+      const selected = currentResults.filter(n => selectedForCompare.has(n.name));
+      
+      if (selected.length === 0) {
+        grid.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-8">Select neighbourhoods above to compare</p>';
+        return;
+      }
+      
+      grid.innerHTML = selected.map(n => `
+        <div class="glass-card rounded-xl p-4">
+          <h4 class="font-display font-semibold text-lg mb-4">${n.name}</h4>
+          <div class="space-y-3">
+            <div class="flex justify-between"><span class="text-gray-400">Match Score</span><span class="font-semibold text-brand-400">${n.overall}%</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Avg Rent</span><span>£${n.avg_rent.toLocaleString()}</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Affordability</span><span>${n.scores.affordability}/100</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Safety</span><span>${n.scores.safety}/100</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Transport</span><span>${n.scores.transport}/100</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Lifestyle</span><span>${n.scores.lifestyle}/100</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Schools</span><span>${n.scores.schools}/100</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Commute</span><span>${n.commute_mins} mins</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Rent-to-Income</span><span class="${n.rentToIncome > 35 ? 'text-red-400' : 'text-brand-400'}">${n.rentToIncome}%</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Monthly Left</span><span>£${n.monthlyLeftover.toLocaleString()}</span></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // =====================================================
+    // MAP
+    // =====================================================
+    
+    function initMap() {
+      if (currentResults.length === 0) return;
+      
+      const mapContainer = document.getElementById('map');
+      if (map) {
+        map.remove();
+      }
+      
+      const firstResult = currentResults[0];
+      map = L.map('map').setView([firstResult.lat, firstResult.lng], 12);
+      
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap contributors © CARTO'
+      }).addTo(map);
+      
+      markers = [];
+      currentResults.forEach((n, i) => {
+        const marker = L.circleMarker([n.lat, n.lng], {
+          radius: 12,
+          fillColor: n.overall >= 70 ? '#22c55e' : n.overall >= 50 ? '#eab308' : '#ef4444',
+          color: '#fff',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).addTo(map);
+        
+        marker.bindPopup(`
+          <div style="min-width: 150px">
+            <strong>#${i + 1} ${n.name}</strong><br>
+            Match: ${n.overall}%<br>
+            Rent: £${n.avg_rent}/mo<br>
+            Safety: ${n.scores.safety}/100
+          </div>
+        `);
+        
+        markers.push(marker);
+      });
+      
+      // Fit bounds to show all markers
+      const group = L.featureGroup(markers);
+      map.fitBounds(group.getBounds().pad(0.1));
+    }
+
+    // =====================================================
+    // PDF EXPORT
+    // =====================================================
+    
+    async function downloadPDF() {
+      if (currentResults.length === 0) {
+        showToast('No results to export', 'error');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      const formData = getFormData();
+      const cityNames = { london: 'London', manchester: 'Manchester', birmingham: 'Birmingham' };
+      
+      // Title
+      doc.setFontSize(24);
+      doc.setTextColor(34, 197, 94);
+      doc.text('RELOC8', 20, 25);
+      
+      doc.setFontSize(12);
+      doc.setTextColor(100);
+      doc.text('AI-Powered Relocation Intelligence', 20, 32);
+      
+      doc.setFontSize(16);
+      doc.setTextColor(0);
+      doc.text(`Top Neighbourhoods in ${cityNames[formData.city]}`, 20, 50);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 58);
+      doc.text(`Salary: £${formData.salary.toLocaleString()} | Budget: £${formData.rentBudget}/mo | Household: ${formData.household}`, 20, 65);
+      
+      let y = 80;
+      
+      currentResults.forEach((n, i) => {
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.setTextColor(0);
+        doc.text(`#${i + 1} ${n.name}`, 20, y);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(34, 197, 94);
+        doc.text(`Match: ${n.overall}%`, 150, y);
+        
+        y += 8;
+        doc.setTextColor(100);
+        doc.text(`Avg Rent: £${n.avg_rent}/mo | Rent-to-Income: ${n.rentToIncome}% | Commute: ${n.commute_mins} mins`, 20, y);
+        
+        y += 6;
+        doc.text(`Scores: Affordability ${n.scores.affordability} | Safety ${n.scores.safety} | Transport ${n.scores.transport} | Lifestyle ${n.scores.lifestyle} | Schools ${n.scores.schools}`, 20, y);
+        
+        if (n.warnings.length > 0) {
+          y += 6;
+          doc.setTextColor(234, 179, 8);
+          doc.text(`⚠ ${n.warnings.join(', ')}`, 20, y);
+        }
+        
+        y += 15;
+      });
+      
+      doc.save(`RELOC8-${cityNames[formData.city]}-recommendations.pdf`);
+      showToast('PDF downloaded!');
+      logAnalytics('download_pdf');
+    }
+
+    // =====================================================
+    // ANALYTICS
+    // =====================================================
+    
+    function logAnalytics(event, data = {}) {
+      console.log(`[RELOC8 Analytics] ${event}`, data);
+    }
+
+    // =====================================================
+    // FORM SUBMISSION
+    // =====================================================
+    
+    document.getElementById('relocation-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = getFormData();
+      const errors = validateForm(formData);
+      
+      const errorDiv = document.getElementById('form-error');
+      
+      if (errors.length > 0) {
+        errorDiv.innerHTML = errors.join('<br>');
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+      
+      errorDiv.classList.add('hidden');
+      
+      // Run scoring
+      currentResults = scoreNeighbourhoods(formData.city, formData);
+      
+      if (currentResults.length === 0) {
+        errorDiv.innerHTML = 'No neighbourhoods found matching your criteria. Try adjusting your commute time limit.';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+      
+      // Show results
+      renderResults(formData);
+      document.getElementById('form-section').classList.add('hidden');
+      document.getElementById('results-section').classList.remove('hidden');
+      
+      logAnalytics('search_completed', { city: formData.city, resultsCount: currentResults.length });
+    });
+
+    // =====================================================
+    // ELEMENT SDK INITIALIZATION
+    // =====================================================
+    
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (config) => {
+          document.getElementById('hero-title').innerHTML = (config.hero_title || defaultConfig.hero_title).replace('Neighbourhood', '<span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-emerald-300">Neighbourhood</span>');
+          document.getElementById('hero-subtitle').textContent = config.hero_subtitle || defaultConfig.hero_subtitle;
+          document.getElementById('cta-button').textContent = config.cta_button_text || defaultConfig.cta_button_text;
+        },
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.primary_color || defaultConfig.primary_color,
+              set: (value) => { config.primary_color = value; window.elementSdk.setConfig({ primary_color: value }); }
+            },
+            {
+              get: () => config.secondary_color || defaultConfig.secondary_color,
+              set: (value) => { config.secondary_color = value; window.elementSdk.setConfig({ secondary_color: value }); }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => { config.text_color = value; window.elementSdk.setConfig({ text_color: value }); }
+            },
+            {
+              get: () => config.accent_color || defaultConfig.accent_color,
+              set: (value) => { config.accent_color = value; window.elementSdk.setConfig({ accent_color: value }); }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['hero_title', config.hero_title || defaultConfig.hero_title],
+          ['hero_subtitle', config.hero_subtitle || defaultConfig.hero_subtitle],
+          ['cta_button_text', config.cta_button_text || defaultConfig.cta_button_text]
+        ])
+      });
+    }
+
+    // Initial analytics
+    logAnalytics('app_loaded');
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9d6325e46531ed08',t:'MTc3MjQ4MzMwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
