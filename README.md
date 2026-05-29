@@ -4,9 +4,9 @@
 
 Moving to a new city is overwhelming. You're juggling property sites, cost-of-living databases, neighbourhood reviews, transport maps, school ratings, and none of it talks to each other. RELOC8 fixes that. It takes everything that matters to you and outputs a single, ranked, explainable recommendation so you can make a confident decision without weeks of research.
 
+<p align="center">
 <img width="732" height="410" alt="reloc8_logo" src="https://github.com/user-attachments/assets/81211105-3c1f-42ce-b855-990255c2368e" />
-
-
+</p>
 
 ## The Problem
 
